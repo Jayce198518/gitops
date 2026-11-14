@@ -46,8 +46,12 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "pharma-service.selectorLabels" -}}
+{{- with .Values.selectorLabels }}
+{{- toYaml . }}
+{{- else }}
 app.kubernetes.io/name: {{ include "pharma-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 {{- end }}
 
 {{/*
