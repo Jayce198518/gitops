@@ -49,9 +49,34 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- end }}
-          {{- if .Values.env }}
+          {{- $usesDbCredentials := false }}
+          {{- range .Values.envFrom }}
+          {{- if and .secretRef (eq .secretRef.name "db-credentials") }}
+          {{- $usesDbCredentials = true }}
+          {{- end }}
+          {{- end }}
+          {{- if or .Values.env $usesDbCredentials }}
           env:
-            {{- toYaml .Values.env | nindent 12 }}
+            {{- if $usesDbCredentials }}
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: host
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+            {{- end }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
           livenessProbe:
             httpGet:
